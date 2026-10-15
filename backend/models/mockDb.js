@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const path = require('path');
-const supabase = require('../config/supabase');
 
 const DATA_DIR_BACKEND = path.join(__dirname, '../data');
 const DB_FILE_BACKEND = path.join(DATA_DIR_BACKEND, 'database.json');
@@ -121,88 +120,6 @@ function ensureDataFile() {
   } catch {}
 }
 
-// Table name mapping between mockDb collections and Supabase tables
-const SUPABASE_TABLES = {
-  users: 'users',
-  doctors: 'doctors',
-  centres: 'health_centres',
-  appointments: 'appointments',
-  records: 'health_records',
-  reminders: 'reminders',
-  consultations: 'consultations'
-};
-
-// 1. Initial Load: Fetch cloud data from Supabase into memory
-async function loadFromSupabase() {
-  if (!supabase) return;
-  try {
-    if (!currentStore) getStore();
-    for (const [collection, table] of Object.entries(SUPABASE_TABLES)) {
-      const { data, error } = await supabase.from(table).select('*');
-      if (error) {
-        continue;
-      }
-      if (data && data.length > 0) {
-        currentStore[collection] = data.map(item => ({
-          ...item,
-          _id: item.id || item._id,
-          isActive: item.is_active !== undefined ? item.is_active : item.isActive,
-          profileCompleted: item.profile_completed !== undefined ? item.profile_completed : item.profileCompleted,
-          medicine: item.medicine_name || item.medicine
-        }));
-      } else if (defaultStore[collection] && defaultStore[collection].length > 0) {
-        // Auto-seed Supabase with initial demo data if table is currently empty
-        for (const seedItem of defaultStore[collection]) {
-          await syncItemToSupabase(collection, seedItem);
-        }
-      }
-    }
-    console.log('✅ Supabase cloud data synced into memory successfully');
-  } catch (err) {
-    console.warn('[Supabase Sync Error]', err.message);
-  }
-}
-
-// 2. Real-Time Write: Save any inserted or updated item into Supabase
-async function syncItemToSupabase(collectionName, item) {
-  if (!supabase) return;
-  try {
-    const table = SUPABASE_TABLES[collectionName];
-    if (!table) return;
-
-    const payload = {
-      ...item,
-      id: item._id || item.id,
-      is_active: item.isActive !== undefined ? item.isActive : item.is_active,
-      profile_completed: item.profileCompleted !== undefined ? item.profileCompleted : item.profile_completed,
-      medicine_name: item.medicine || item.medicine_name
-    };
-    delete payload._id;
-    delete payload.isActive;
-    delete payload.profileCompleted;
-    delete payload.medicine;
-
-    const { error } = await supabase.from(table).upsert(payload);
-    if (error) {
-      console.warn(`[Supabase Write Note on ${table}]:`, error.message);
-    }
-  } catch (err) {
-    console.warn(`[Supabase Sync Exception on ${collectionName}]:`, err.message);
-  }
-}
-
-// 3. Delete Sync: Remove item from Supabase when deleted
-async function syncDeleteToSupabase(collectionName, id) {
-  if (!supabase) return;
-  try {
-    const table = SUPABASE_TABLES[collectionName];
-    if (!table) return;
-    await supabase.from(table).delete().eq('id', id);
-  } catch (err) {
-    console.warn(`[Supabase Delete Exception on ${collectionName}]:`, err.message);
-  }
-}
-
 // Dynamically retrieves and automatically syncs store from disk if modified
 function getStore() {
   try {
@@ -237,13 +154,13 @@ function persistStore() {
     const json = JSON.stringify(currentStore, null, 2);
     
     // Write atomically to both locations if running locally
-    try {
-      fs.writeFileSync(DB_FILE_ROOT, json, 'utf8');
-      try { fs.chmodSync(DB_FILE_ROOT, 0o666); } catch {}
-      fs.writeFileSync(DB_FILE_BACKEND, json, 'utf8');
-      try { fs.chmodSync(DB_FILE_BACKEND, 0o666); } catch {}
-      lastMtime = fs.statSync(DB_FILE_ROOT).mtimeMs;
-    } catch {}
+    fs.writeFileSync(DB_FILE_ROOT, json, 'utf8');
+    try { fs.chmodSync(DB_FILE_ROOT, 0o666); } catch {}
+
+    fs.writeFileSync(DB_FILE_BACKEND, json, 'utf8');
+    try { fs.chmodSync(DB_FILE_BACKEND, 0o666); } catch {}
+
+    lastMtime = fs.statSync(DB_FILE_ROOT).mtimeMs;
   } catch (err) {
     console.warn('[mockDb] Failed to persist database to file:', err.message);
   }
@@ -254,9 +171,8 @@ function reloadStore() {
   return getStore();
 }
 
-// Initial local load and Supabase cloud sync
+// Initial load
 getStore();
-loadFromSupabase();
 
 function generateId(prefix = 'id') {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
@@ -322,10 +238,6 @@ function createMockModel(collectionName, entityName, populateFn) {
       collection.push(plain);
     }
     persistStore();
-
-    // Automatically sync insert/update to Supabase
-    syncItemToSupabase(collectionName, plain);
-
     return plain;
   };
 
@@ -366,10 +278,6 @@ function createMockModel(collectionName, entityName, populateFn) {
     if (!item) return null;
     Object.assign(item, update, { updatedAt: new Date().toISOString() });
     persistStore();
-
-    // Automatically sync update to Supabase
-    syncItemToSupabase(collectionName, item);
-
     return { ...item };
   };
 
@@ -380,10 +288,6 @@ function createMockModel(collectionName, entityName, populateFn) {
     if (index === -1) return null;
     const [removed] = collection.splice(index, 1);
     persistStore();
-
-    // Automatically delete from Supabase
-    syncDeleteToSupabase(collectionName, id);
-
     return removed;
   };
 

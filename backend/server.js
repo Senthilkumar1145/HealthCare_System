@@ -49,16 +49,11 @@ app.use('/api/reminders', reminderRoutes);
 app.use('/api/centres', centreRoutes);
 
 
-// Database Connection (Supabase Primary, MongoDB optional)
-const supabase = require('./config/supabase');
-
-if (process.env.MONGO_URI) {
-  mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('MongoDB Connected Successfully'))
-    .catch((err) => console.log('Database connection error: ', err));
-} else {
-  console.log(' Supabase Cloud Database active');
-}
+// Database Connection
+const mongoURI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/rural_healthcare';
+mongoose.connect(mongoURI)
+  .then(() => console.log('MongoDB Connected Successfully'))
+  .catch((err) => console.log('Database connection error: ', err));
 
 
 
