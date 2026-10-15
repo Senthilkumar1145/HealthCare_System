@@ -1,0 +1,7 @@
+{
+  "name": "Rural Health Care System",
+  "description": "Digital healthcare platform for rural communities providing appointment scheduling, telemedicine, electronic health records, medicine reminders, and nearby healthcare centre directories.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
