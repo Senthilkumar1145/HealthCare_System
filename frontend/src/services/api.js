@@ -1,8 +1,9 @@
 import axios from 'axios';
 
-// Create an Axios instance pointing to the unified backend server
+// Create an Axios instance pointing to the backend server
+const rawApiUrl = import.meta.env.VITE_API_URL;
 const API = axios.create({
-  baseURL: '/api',
+  baseURL: rawApiUrl ? `${rawApiUrl.replace(/\/+$/, '')}/api` : '/api',
 });
 
 // Automatically attach JWT token to requests if available in localStorage

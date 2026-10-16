@@ -11,7 +11,12 @@ const app = express();
 
 // Core Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+app.options('*', cors());
 
 // Import Backend Routes
 const authRoutes = require('./backend/routes/authRoutes');
@@ -319,10 +324,21 @@ function findAvailablePort(startPort, host = '0.0.0.0', maxAttempts = 20) {
 async function startServer() {
   if (process.env.NODE_ENV === 'production') {
     const distPath = path.join(__dirname, 'frontend/dist');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
+    const indexPath = path.join(distPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      app.use(express.static(distPath));
+      app.get('*', (req, res) => {
+        res.sendFile(indexPath);
+      });
+    } else {
+      app.get('/', (req, res) => {
+        res.json({
+          status: 'ok',
+          service: 'Rural Health Care System Backend API',
+          health: '/api/health'
+        });
+      });
+    }
   } else {
     try {
       const { createServer: createViteServer } = await import('vite');
