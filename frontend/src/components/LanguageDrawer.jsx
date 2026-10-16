@@ -1,5 +1,5 @@
 import React from 'react';
-import { LANGUAGES, getTranslation } from '../i18n/translations';
+import { LANGUAGES, getTranslation, translateUserName } from '../i18n/translations';
 
 export default function LanguageDrawer({
   isOpen,
@@ -102,10 +102,10 @@ export default function LanguageDrawer({
             <div>
               <div style={{ fontSize: '12px', color: '#047857', fontWeight: 600 }}>{t('welcomeUser')}</div>
               <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
-                {user.name}
+                {translateUserName(user.name, currentLanguage)}
               </div>
               <div style={{ fontSize: '12px', color: '#059669', fontWeight: 600 }}>
-                {user.role} • {user.phone}
+                {user.role === 'Doctor' ? t('roleDoctor') : user.role === 'Nurse' ? t('roleNurse') : t('rolePatient')} • {user.phone}
               </div>
             </div>
             <button

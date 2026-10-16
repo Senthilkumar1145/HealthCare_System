@@ -1,15 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import API from '../services/api';
+import { getTranslation, translateUserName, translateSpecialization } from '../i18n/translations';
 
 export default function TelemedicineRoom({ 
   user, 
   appointments, 
-  t, 
+  t: propT, 
   notify, 
   onNavigateToRecords,
   preselectedAppointmentId,
-  onCallSessionUpdate
+  onCallSessionUpdate,
+  currentLanguage = 'en'
 }) {
+  const t = (key, params) => (propT ? propT(key, params) : getTranslation(currentLanguage, key, params));
+
   const [callState, setCallState] = useState('idle'); // 'idle' | 'calling' | 'connecting' | 'connected' | 'ended'
   const [activeAppointment, setActiveAppointment] = useState(null);
   const [consultationId, setConsultationId] = useState(null);
@@ -366,18 +370,18 @@ export default function TelemedicineRoom({
   };
 
   const getOtherPartyName = () => {
-    if (!activeAppointment) return 'Healthcare Specialist';
+    if (!activeAppointment) return t('assignedSpecialist');
     if (isDoctor) {
-      return activeAppointment.user_id?.name || 'Patient';
+      return translateUserName(activeAppointment.user_id?.name || 'Patient', currentLanguage);
     }
-    return activeAppointment.doctor_id?.name || 'Doctor';
+    return translateUserName(activeAppointment.doctor_id?.name || 'Doctor', currentLanguage);
   };
 
   const getOtherPartyRole = () => {
     if (isDoctor) {
-      return `Patient (Phone: ${activeAppointment?.user_id?.phone || 'N/A'})`;
+      return `${t('patientLabel')} (${t('patientPhone')} ${activeAppointment?.user_id?.phone || 'N/A'})`;
     }
-    return `Specialist: ${activeAppointment?.doctor_id?.specialization || 'General Physician'}`;
+    return `${t('doctorLabel')} ${translateSpecialization(activeAppointment?.doctor_id?.specialization || 'General Physician', currentLanguage)}`;
   };
 
   if (user?.role === 'Nurse') {
@@ -398,13 +402,13 @@ export default function TelemedicineRoom({
           </h2>
           <span className="badge-green" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: callState === 'connected' ? '#10b981' : '#f59e0b', display: 'inline-block' }}></span>
-            <span>{callState === 'connected' ? 'LIVE AUDIO ACTIVE' : '2G/3G RURAL OPTIMIZED'}</span>
+            <span>{callState === 'connected' ? t('liveAudioActiveBadge') : t('lowBandwidthBadge')}</span>
           </span>
         </div>
         <p style={{ margin: 0, color: '#475569', fontSize: '14px', lineHeight: 1.5 }}>
           {isDoctor
-            ? 'Initiate and conduct live, low-latency remote audio consultation calls with accepted patients over low-bandwidth 2G/3G connections.' 
-            : 'Receive live audio consultation calls from your assigned doctor over our 2G/3G low-bandwidth remote channel.'}
+            ? t('telemedicineDoctorDesc')
+            : t('telemedicinePatientDesc')}
         </p>
       </div>
 
@@ -423,7 +427,7 @@ export default function TelemedicineRoom({
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '260px' }}>
           <label style={{ fontSize: '13px', fontWeight: 700, color: '#065f46', whiteSpace: 'nowrap' }}>
-            📅 Consultation Schedule:
+            📅 {t('connectedPatientsHeader')}:
           </label>
           {acceptedAppointments.length > 0 ? (
             <select
@@ -439,14 +443,14 @@ export default function TelemedicineRoom({
               {acceptedAppointments.map(app => (
                 <option key={app._id} value={app._id}>
                   {isDoctor
-                    ? `👤 Patient: ${app.user_id?.name || 'Patient'} (${new Date(app.date_time).toLocaleDateString()})`
-                    : `👨‍⚕️ ${app.doctor_id?.name || 'Doctor'} (${new Date(app.date_time).toLocaleDateString()})`}
+                    ? `👤 ${t('patientLabel')} ${translateUserName(app.user_id?.name || 'Patient', currentLanguage)} (${new Date(app.date_time).toLocaleDateString()})`
+                    : `👨‍⚕️ ${translateUserName(app.doctor_id?.name || 'Doctor', currentLanguage)} (${new Date(app.date_time).toLocaleDateString()})`}
                 </option>
               ))}
             </select>
           ) : (
             <span style={{ fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>
-              No accepted appointments yet. Please accept an appointment first in the Appointments tab.
+              {t('noAcceptedAppDoctorHint')}
             </span>
           )}
         </div>
@@ -510,14 +514,14 @@ export default function TelemedicineRoom({
 
             <h3 style={{ margin: '0 0 8px 0', color: '#065f46', fontSize: '20px', fontWeight: 800 }}>
               {activeAppointment 
-                ? `Ready to Connect with ${getOtherPartyName()}`
-                : 'Rural Audio Consultation Channel'}
+                ? t('telemedicineConnectReady', { name: getOtherPartyName() })
+                : t('telemedicineRuralChannel')}
             </h3>
             
             <p style={{ maxWidth: '580px', margin: '0 auto 24px auto', color: '#64748b', fontSize: '14px', lineHeight: 1.6 }}>
               {activeAppointment
-                ? `Consultation schedule verified for ${new Date(activeAppointment.date_time).toLocaleString()}. Audio channel optimized for low-bandwidth 2G/3G networks.`
-                : 'Please select an appointment above with status "Accepted" to start your remote consultation session.'}
+                ? t('telemedicineVerifiedNotice', { time: new Date(activeAppointment.date_time).toLocaleString() })
+                : t('telemedicineSelectAcceptedNotice')}
             </p>
 
             {activeAppointment ? (
@@ -537,7 +541,7 @@ export default function TelemedicineRoom({
                     }}
                   >
                     <span>📞</span>
-                    <span>Initiate Audio Call to Patient</span>
+                    <span>{t('initiateCallToPatientBtn')}</span>
                   </button>
                 </div>
               ) : (
@@ -547,10 +551,10 @@ export default function TelemedicineRoom({
                     <div style={{ background: '#ecfdf5', border: '2px solid #10b981', padding: '20px', borderRadius: '12px', maxWidth: '480px', margin: '0 auto' }}>
                       <div className="incoming-call-ring-icon" style={{ width: '60px', height: '60px', fontSize: '30px' }}>📞</div>
                       <h4 style={{ margin: '0 0 6px 0', color: '#065f46', fontSize: '17px', fontWeight: 700 }}>
-                        Doctor is calling you now!
+                        {t('doctorIsCallingYouNow')}
                       </h4>
                       <p style={{ fontSize: '13px', color: '#047857', marginBottom: '16px' }}>
-                        Dr. {activeAppointment.doctor_id?.name || 'Doctor'} has initiated your audio consultation call.
+                        {t('doctorInitiatedCallNotice', { name: translateUserName(activeAppointment.doctor_id?.name || 'Doctor', currentLanguage) })}
                       </p>
                       <button
                         type="button"
@@ -558,7 +562,7 @@ export default function TelemedicineRoom({
                         className="btn-accept-call"
                       >
                         <span>🟢</span>
-                        <span>Accept & Join Call Now</span>
+                        <span>{t('acceptAndJoinCallNowBtn')}</span>
                       </button>
                     </div>
                   ) : (
@@ -573,9 +577,9 @@ export default function TelemedicineRoom({
                       fontSize: '14px'
                     }}>
                       <div style={{ fontSize: '28px', marginBottom: '8px' }}>⏳</div>
-                      <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>Awaiting Doctor's Call</div>
+                      <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>{t('awaitingDoctorCallTitle')}</div>
                       <div>
-                        Your consultation appointment is confirmed. Please wait for <strong>Dr. {activeAppointment.doctor_id?.name || 'Doctor'}</strong> to initiate the live call. You will receive an incoming call prompt automatically.
+                        {t('awaitingDoctorCallNotice', { name: translateUserName(activeAppointment.doctor_id?.name || 'Doctor', currentLanguage) })}
                       </div>
                     </div>
                   )}

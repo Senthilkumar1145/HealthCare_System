@@ -1,7 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import API from './services/api';
 import './App.css';
-import { getTranslation } from './i18n/translations';
+import { 
+  getTranslation, 
+  translateUserName, 
+  translateHospitalName, 
+  translateLocation, 
+  translateCity, 
+  translateSpecialization, 
+  translateDiagnosis, 
+  translateSchedule 
+} from './i18n/translations';
 import HamburgerButton from './components/HamburgerButton';
 import DoctorProfileOnboarding from './components/DoctorProfileOnboarding';
 import LocationBooking from './components/LocationBooking';
@@ -394,8 +403,8 @@ function App() {
       const hospName = res.data.user?.hospital?.name || res.data.doctor?.hospital?.name;
       notify(
         res.data.user.role === 'Doctor' && hospName
-          ? `Welcome Dr. ${res.data.user.name}! Active at ${hospName}` 
-          : t('loginSuccessMsg', { name: res.data.user.name, role: res.data.user.role })
+          ? `Welcome Dr. ${translateUserName(res.data.user.name, currentLanguage)}! Active at ${translateHospitalName(hospName, currentLanguage)}` 
+          : t('loginSuccessMsg', { name: translateUserName(res.data.user.name, currentLanguage), role: getRoleDisplayName(res.data.user.role) })
       );
     } catch (err) {
       setError(err.response?.data?.message || t('loginFailedMsg'));
@@ -1047,7 +1056,7 @@ function App() {
                       {/* Area Location Cascading Dropdowns: State, District, City */}
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginBottom: '12px' }}>
                         <div className="form-group" style={{ margin: 0 }}>
-                          <label className="form-label" style={{ fontSize: '12px', fontWeight: 700 }}>State *</label>
+                          <label className="form-label" style={{ fontSize: '12px', fontWeight: 700 }}>{t('docStateInputLabel')} *</label>
                           <select 
                             className="form-input-green" 
                             value={docRegState} 
@@ -1055,13 +1064,13 @@ function App() {
                             required 
                             style={{ backgroundColor: '#ffffff', cursor: 'pointer', padding: '8px 10px', fontSize: '13px' }}
                           >
-                            <option value="">Select State</option>
-                            {regStates.map(s => <option key={s} value={s}>{s}</option>)}
+                            <option value="">{t('selectStateDropdownOption')}</option>
+                            {regStates.map(s => <option key={s} value={s}>{translateLocation(s, currentLanguage)}</option>)}
                           </select>
                         </div>
 
                         <div className="form-group" style={{ margin: 0 }}>
-                          <label className="form-label" style={{ fontSize: '12px', fontWeight: 700 }}>District *</label>
+                          <label className="form-label" style={{ fontSize: '12px', fontWeight: 700 }}>{t('docDistrictInputLabel')} *</label>
                           <select 
                             className="form-input-green" 
                             value={docRegDistrict} 
@@ -1070,13 +1079,13 @@ function App() {
                             required 
                             style={{ backgroundColor: '#ffffff', cursor: 'pointer', padding: '8px 10px', fontSize: '13px' }}
                           >
-                            <option value="">Select District</option>
-                            {regDistricts.map(d => <option key={d} value={d}>{d}</option>)}
+                            <option value="">{t('selectDistrictDropdownOption')}</option>
+                            {regDistricts.map(d => <option key={d} value={d}>{translateLocation(d, currentLanguage)}</option>)}
                           </select>
                         </div>
 
                         <div className="form-group" style={{ margin: 0 }}>
-                          <label className="form-label" style={{ fontSize: '12px', fontWeight: 700 }}>City / Area *</label>
+                          <label className="form-label" style={{ fontSize: '12px', fontWeight: 700 }}>{t('docCityInputLabel')} *</label>
                           <select 
                             className="form-input-green" 
                             value={docRegCity} 
@@ -1085,8 +1094,8 @@ function App() {
                             required 
                             style={{ backgroundColor: '#ffffff', cursor: 'pointer', padding: '8px 10px', fontSize: '13px' }}
                           >
-                            <option value="">Select City/Area</option>
-                            {regCities.map(c => <option key={c} value={c}>{c}</option>)}
+                            <option value="">{t('selectCityDropdownOption')}</option>
+                            {regCities.map(c => <option key={c} value={c}>{translateCity(c, currentLanguage)}</option>)}
                           </select>
                         </div>
                       </div>
@@ -1094,7 +1103,7 @@ function App() {
                       {/* Hospital Dropdown based on chosen Area Location */}
                       <div className="form-group" style={{ margin: 0 }}>
                         <label className="form-label" style={{ fontSize: '12px', fontWeight: 700 }}>
-                          🏥 Hospital Name * {docRegCity ? `(in ${docRegCity})` : docRegState ? `(in ${docRegState})` : ''}
+                          🏥 {t('hospitalNameLabel')} * {docRegCity ? `(in ${translateCity(docRegCity, currentLanguage)})` : docRegState ? `(in ${translateLocation(docRegState, currentLanguage)})` : ''}
                         </label>
                         <select 
                           value={docRegHospitalId} 
@@ -1103,10 +1112,10 @@ function App() {
                           style={{ backgroundColor: '#ffffff', cursor: 'pointer', width: '100%' }}
                           required
                         >
-                          <option value="">-- Choose Hospital from Database --</option>
+                          <option value="">{t('chooseHospitalFromDatabase')}</option>
                           {regHospitals.map(h => (
                             <option key={h._id} value={h._id}>
-                              🏥 {h.name} — {h.address || h.location} ({h.city})
+                              🏥 {translateHospitalName(h.name, currentLanguage)} — {translateLocation(h.address || h.location, currentLanguage)} ({translateCity(h.city, currentLanguage)})
                             </option>
                           ))}
                         </select>
@@ -1118,9 +1127,9 @@ function App() {
                           if (!hosp) return null;
                           return (
                             <div style={{ marginTop: '10px', fontSize: '12px', color: '#065f46', background: '#ffffff', padding: '10px 12px', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
-                              <div><strong>🏥 Hospital Name:</strong> {hosp.name}</div>
-                              <div><strong>📍 Area Location:</strong> {hosp.address || hosp.location}, {hosp.city}, {hosp.state}</div>
-                              {hosp.phone && <div><strong>📞 Phone:</strong> {hosp.phone}</div>}
+                              <div><strong>🏥 {t('hospitalNameLabel')}:</strong> {translateHospitalName(hosp.name, currentLanguage)}</div>
+                              <div><strong>📍 {t('areaLocationLabel')}:</strong> {translateLocation(hosp.address || hosp.location, currentLanguage)}, {translateCity(hosp.city, currentLanguage)}, {translateLocation(hosp.state, currentLanguage)}</div>
+                              {hosp.phone && <div><strong>📞 {t('contactPhoneLabel')}:</strong> {hosp.phone}</div>}
                             </div>
                           );
                         })()
@@ -1131,7 +1140,7 @@ function App() {
 
                 {role === 'Nurse' && (
                   <div className="form-group">
-                    <label className="form-label">🏥 Associated Hospital / Centre</label>
+                    <label className="form-label">🏥 {t('hospitalAttachedBadge')}</label>
                     <select 
                       value={registerCentreId} 
                       onChange={e => setRegisterCentreId(e.target.value)} 
@@ -1139,10 +1148,10 @@ function App() {
                       style={{ backgroundColor: '#ffffff', cursor: 'pointer' }}
                       required
                     >
-                      <option value="">-- Select Hospital --</option>
+                      <option value="">{t('selectHospitalDropdownOption')}</option>
                       {hospitalList.map(h => (
                         <option key={h._id} value={h._id}>
-                          🏥 {h.name} — {h.city || h.district || 'Tamil Nadu'}
+                          🏥 {translateHospitalName(h.name, currentLanguage)} — {translateCity(h.city, currentLanguage) || translateLocation(h.district || 'Tamil Nadu', currentLanguage)}
                         </option>
                       ))}
                     </select>
@@ -1273,11 +1282,15 @@ function App() {
   if (user && user.role === 'Doctor' && doctorOnboarding) {
     return (
       <div style={{ padding: '24px 16px', maxWidth: '900px', margin: 'auto' }}>
-        <DoctorProfileOnboarding user={user} onCompleted={(prof) => {
-          setDoctorProfile(prof);
-          setDoctorOnboarding(false);
-          notify('Doctor profile completed');
-        }} />
+        <DoctorProfileOnboarding 
+          user={user} 
+          currentLanguage={currentLanguage}
+          onCompleted={(prof) => {
+            setDoctorProfile(prof);
+            setDoctorOnboarding(false);
+            notify('Doctor profile completed');
+          }} 
+        />
       </div>
     );
   }
@@ -1321,15 +1334,15 @@ function App() {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '6px' }}>
               <span style={{ fontSize: '14px', color: '#475569' }}>
-                {t('welcomeUser')} <strong style={{ color: '#0f172a' }}>{user.name}</strong>{' '}
+                {t('welcomeUser')} <strong style={{ color: '#0f172a' }}>{translateUserName(user.name, currentLanguage)}</strong>{' '}
                 <span className="badge-green" style={{ marginLeft: '4px' }}>
                   {getRoleDisplayName(user.role)}
                 </span>
               </span>
               {user.role === 'Doctor' && (
                 <span className="badge-green" style={{ background: '#ecfdf5', border: '1.5px solid #10b981', color: '#065f46', fontWeight: 700 }}>
-                  🏥 {doctorProfile?.hospital?.name || user.hospital?.name || 'Hospital Attached'}
-                  {(doctorProfile?.hospital?.city || user.hospital?.city) ? ` (${doctorProfile?.hospital?.city || user.hospital?.city})` : ''}
+                  🏥 {translateHospitalName(doctorProfile?.hospital?.name || user.hospital?.name || 'Hospital Attached', currentLanguage)}
+                  {(doctorProfile?.hospital?.city || user.hospital?.city) ? ` (${translateCity(doctorProfile?.hospital?.city || user.hospital?.city, currentLanguage)})` : ''}
                 </span>
               )}
               <div className="badge-green">
@@ -1387,7 +1400,7 @@ function App() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span className="badge-green-dot"></span>
               <span style={{ fontWeight: 800, color: '#065f46', fontSize: '14px' }}>
-                🎙️ LIVE CONSULTATION CALL: {callSessionInfo.otherPartyName || 'Patient'}
+                🎙️ {t('activeTelemedicineNotice')} {translateUserName(callSessionInfo.otherPartyName, currentLanguage) || t('patientLabel')}
               </span>
               <span style={{ background: '#ecfdf5', border: '1.5px solid #6ee7b7', color: '#047857', padding: '3px 12px', borderRadius: '14px', fontSize: '13px', fontWeight: 700, fontFamily: 'monospace' }}>
                 ⏱️ {callSessionInfo.callTimer}
@@ -1401,7 +1414,7 @@ function App() {
                 style={{ padding: '6px 14px', fontSize: '12px' }}
               >
                 <span>🎙️</span>
-                <span>Open Call Room</span>
+                <span>{t('openCallRoomBtn')}</span>
               </button>
               <button 
                 type="button" 
@@ -1409,14 +1422,14 @@ function App() {
                 className="btn-green-outline"
                 style={{ padding: '6px 12px', fontSize: '12px' }}
               >
-                <span>{callSessionInfo.isMuted ? '🔇 Unmute' : '🎙️ Mute'}</span>
+                <span>{callSessionInfo.isMuted ? `🔇 ${t('unmuteBtnText')}` : `🎙️ ${t('muteBtnText')}`}</span>
               </button>
               <button 
                 type="button" 
                 onClick={callSessionInfo.onEndCall}
                 style={{ padding: '6px 14px', fontSize: '12px', background: '#dc2626', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
               >
-                <span>🔴 End Call</span>
+                <span>🔴 {t('endCallBtnText')}</span>
               </button>
             </div>
           </div>
@@ -1430,10 +1443,10 @@ function App() {
                 <span>📞</span>
               </div>
               <h3 style={{ margin: '0 0 6px 0', color: '#065f46', fontSize: '20px', fontWeight: 800 }}>
-                Incoming Audio Consultation Call
+                {t('incomingCallTitle')}
               </h3>
               <p style={{ margin: '0 0 20px 0', color: '#475569', fontSize: '14px', lineHeight: 1.5 }}>
-                <strong>Dr. {incomingCall.appointment_id?.doctor_id?.name || 'Your Doctor'}</strong> ({incomingCall.appointment_id?.doctor_id?.specialization || 'General Physician'}) is calling you for your scheduled consultation.
+                <strong>Dr. {translateUserName(incomingCall.appointment_id?.doctor_id?.name || 'Your Doctor', currentLanguage)}</strong> ({translateSpecialization(incomingCall.appointment_id?.doctor_id?.specialization || 'General Physician', currentLanguage)}) {t('doctorInitiatedCallNotice', { name: translateUserName(incomingCall.appointment_id?.doctor_id?.name || 'Your Doctor', currentLanguage) })}
               </p>
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                 <button 
@@ -1442,7 +1455,7 @@ function App() {
                   onClick={handleAcceptIncomingCall}
                 >
                   <span>🟢</span>
-                  <span>Accept & Join Call</span>
+                  <span>{t('acceptAndJoinCallBtn')}</span>
                 </button>
                 <button 
                   type="button" 
@@ -1450,7 +1463,7 @@ function App() {
                   onClick={handleDeclineIncomingCall}
                 >
                   <span>🔴</span>
-                  <span>Decline</span>
+                  <span>{t('declineCallBtn')}</span>
                 </button>
               </div>
             </div>
@@ -1536,7 +1549,7 @@ function App() {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                     <span style={{ fontSize: '30px' }}>📅</span>
-                    <span className="badge-green" style={{ fontSize: '11px' }}>Active Module</span>
+                    <span className="badge-green" style={{ fontSize: '11px' }}>{t('activeModuleBadge')}</span>
                   </div>
                   <h3 style={{ margin: '0 0 8px 0', color: '#065f46', fontSize: '17px', fontWeight: 700 }}>
                     {t('cardAppointmentsTitle')}
@@ -1553,7 +1566,7 @@ function App() {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                     <span style={{ fontSize: '30px' }}>📁</span>
-                    <span className="badge-green" style={{ fontSize: '11px' }}>Secure Records</span>
+                    <span className="badge-green" style={{ fontSize: '11px' }}>{t('secureRecordsBadge')}</span>
                   </div>
                   <h3 style={{ margin: '0 0 8px 0', color: '#065f46', fontSize: '17px', fontWeight: 700 }}>
                     {t('cardRecordsTitle')}
@@ -1570,7 +1583,7 @@ function App() {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                     <span style={{ fontSize: '30px' }}>⏰</span>
-                    <span className="badge-green" style={{ fontSize: '11px' }}>Daily Dosage</span>
+                    <span className="badge-green" style={{ fontSize: '11px' }}>{t('dailyDosageBadge')}</span>
                   </div>
                   <h3 style={{ margin: '0 0 8px 0', color: '#065f46', fontSize: '17px', fontWeight: 700 }}>
                     {t('cardRemindersTitle')}
@@ -1587,7 +1600,7 @@ function App() {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                     <span style={{ fontSize: '30px' }}>🏥</span>
-                    <span className="badge-green" style={{ fontSize: '11px' }}>Directory</span>
+                    <span className="badge-green" style={{ fontSize: '11px' }}>{t('directoryBadge')}</span>
                   </div>
                   <h3 style={{ margin: '0 0 8px 0', color: '#065f46', fontSize: '17px', fontWeight: 700 }}>
                     {t('cardCentresTitle')}
@@ -1605,7 +1618,7 @@ function App() {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                       <span style={{ fontSize: '30px' }}>🎙️</span>
-                      <span className="badge-green" style={{ fontSize: '11px' }}>2G/3G Ready</span>
+                      <span className="badge-green" style={{ fontSize: '11px' }}>{t('ready2gBadge')}</span>
                     </div>
                     <h3 style={{ margin: '0 0 8px 0', color: '#065f46', fontSize: '17px', fontWeight: 700 }}>
                       {t('cardTelemedicineTitle')}
@@ -1629,6 +1642,7 @@ function App() {
                   notify={notify} 
                   onBooked={fetchAppointments} 
                   preselectedHospital={preselectedHospital} 
+                  currentLanguage={currentLanguage}
                 />
               ) : (
                 <div style={{ marginBottom: '22px' }}>
@@ -1637,13 +1651,13 @@ function App() {
                       📋 {t('manageAppointmentsTitle')}
                     </h2>
                     <span className="badge-green">
-                      {getRoleDisplayName(user.role)} Portal
+                      {getRoleDisplayName(user.role)} {t('portalSuffix')}
                     </span>
                   </div>
                   <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#475569', lineHeight: 1.5 }}>
                     {user.role === 'Doctor' 
-                      ? 'Review incoming consultation appointments booked by patients. Accept or reject appointments to update the schedule.' 
-                      : 'Clinical staff appointment triage: Review, accept, or reject patient appointments.'}
+                      ? t('doctorReviewNotice')
+                      : t('nurseReviewNotice')}
                   </p>
                 </div>
               )}
@@ -1697,14 +1711,14 @@ function App() {
                             {isDoctorOrNurse ? (
                               <>
                                 <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
-                                  {t('patientLabel')} {app.user_id?.name || 'Patient'}
+                                  {t('patientLabel')} {translateUserName(app.user_id?.name || 'Patient', currentLanguage)}
                                 </div>
                                 <div style={{ fontSize: '13px', color: '#059669', fontWeight: 600, marginTop: '2px' }}>
                                   📞 {app.user_id?.phone || 'No phone'}
                                 </div>
                                 {app.doctor_id?.name && (
                                   <div style={{ fontSize: '12px', color: '#475569', marginTop: '2px' }}>
-                                    <strong>{t('doctorLabel')}</strong> {app.doctor_id.name} ({app.doctor_id.specialization || 'General'})
+                                    <strong>{t('doctorLabel')}</strong> {translateUserName(app.doctor_id.name, currentLanguage)} ({translateSpecialization(app.doctor_id.specialization || 'General', currentLanguage)})
                                   </div>
                                 )}
                               </>
@@ -1712,10 +1726,10 @@ function App() {
                               /* If Patient viewing, lead with Doctor name */
                               <>
                                 <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
-                                  {t('doctorLabel')} {app.doctor_id?.name || t('assignedSpecialist')}
+                                  {t('doctorLabel')} {translateUserName(app.doctor_id?.name, currentLanguage) || t('assignedSpecialist')}
                                 </div>
                                 <div style={{ fontSize: '13px', color: '#047857', fontWeight: 500 }}>
-                                  {app.doctor_id?.specialization || 'General Healthcare'}
+                                  {translateSpecialization(app.doctor_id?.specialization || 'General Healthcare', currentLanguage)}
                                 </div>
                               </>
                             )}
@@ -1729,8 +1743,8 @@ function App() {
                               <div style={{ fontSize: '12px', color: '#047857', fontWeight: 600, marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <span>🏥</span>
                                 <span>
-                                  {app.hospital?.name || app.doctor_id?.hospital?.name}
-                                  {(app.hospital?.location || app.hospital?.city || app.doctor_id?.hospital?.city) && ` (📍 ${app.hospital?.location || app.hospital?.city || app.doctor_id?.hospital?.city})`}
+                                  {translateHospitalName(app.hospital?.name || app.doctor_id?.hospital?.name, currentLanguage)}
+                                  {(app.hospital?.location || app.hospital?.city || app.doctor_id?.hospital?.city) && ` (📍 ${translateLocation(app.hospital?.location || app.hospital?.city || app.doctor_id?.hospital?.city, currentLanguage)})`}
                                 </span>
                               </div>
                             )}
@@ -1758,7 +1772,7 @@ function App() {
                               title="Join live audio consultation with your doctor"
                             >
                               <span>🎙️</span>
-                              <span>Join Audio Call</span>
+                              <span>{t('joinAudioCallBtn')}</span>
                             </button>
                           )}
 
@@ -1803,7 +1817,7 @@ function App() {
                                       title="Start live audio consultation with patient"
                                     >
                                       <span>🎙️</span>
-                                      <span>Call Patient</span>
+                                      <span>{t('callPatientBtn')}</span>
                                     </button>
                                   )}
                                   <button
@@ -1844,6 +1858,7 @@ function App() {
                 appointments={appointments}
                 t={t}
                 notify={notify}
+                currentLanguage={currentLanguage}
                 preselectedAppointmentId={activeTelemedicineAppId}
                 onCallSessionUpdate={setCallSessionInfo}
                 onNavigateToRecords={(pId) => {
@@ -1867,12 +1882,12 @@ function App() {
                     📋 {user.role === 'Doctor' || user.role === 'Nurse' ? t('doctorNurseEditorTitle') : t('recordsHeading')}
                   </h2>
                   <span className="badge-green">
-                    {user.role === 'Doctor' || user.role === 'Nurse' ? `${getRoleDisplayName(user.role)} Portal` : 'Patient Health Vault'}
+                    {user.role === 'Doctor' || user.role === 'Nurse' ? `${getRoleDisplayName(user.role)} ${t('portalSuffix')}` : t('patientVaultBadge')}
                   </span>
                 </div>
                 <p style={{ margin: 0, fontSize: '14px', color: '#475569', lineHeight: 1.5 }}>
                   {user.role === 'Doctor' || user.role === 'Nurse' 
-                    ? 'Access patients with accepted appointment schedules, review historical clinical notes, add new diagnoses, and edit prescriptions.' 
+                    ? t('doctorStaffEditorDesc')
                     : t('patientRecordsSubtitle')}
                 </p>
               </div>
@@ -1910,7 +1925,7 @@ function App() {
                       <option value="">{t('allPatientsOption')}</option>
                       {acceptedPatients.map(p => (
                         <option key={p._id} value={p._id}>
-                          {p.name} (📞 {p.phone})
+                          {translateUserName(p.name, currentLanguage)} (📞 {p.phone})
                         </option>
                       ))}
                     </select>
@@ -1967,10 +1982,10 @@ function App() {
                           className="form-input-green"
                           style={{ backgroundColor: '#ffffff', cursor: 'pointer' }}
                         >
-                          <option value="">-- Choose Accepted Patient --</option>
+                          <option value="">{t('chooseAcceptedPatientOption')}</option>
                           {acceptedPatients.map(p => (
                             <option key={p._id} value={p._id}>
-                              {p.name} (Phone: {p.phone}) - Accepted Appt: {new Date(p.appointmentDate).toLocaleDateString()}
+                              {translateUserName(p.name, currentLanguage)} (📞 {p.phone}) - Accepted Appt: {new Date(p.appointmentDate).toLocaleDateString()}
                             </option>
                           ))}
                         </select>
@@ -2004,7 +2019,7 @@ function App() {
                       <div style={{ display: 'flex', gap: '10px' }}>
                         <button type="submit" className="btn-green-primary">
                           <span>💾</span>
-                          <span>Save Medical Record</span>
+                          <span>{t('saveMedicalRecordBtn')}</span>
                         </button>
                         <button 
                           type="button" 
@@ -2056,7 +2071,7 @@ function App() {
                                 <span>{t('editRecordTitle')}</span>
                               </h4>
                               <span className="badge-green">
-                                👤 {rec.user_id?.name ? `Patient: ${rec.user_id.name}` : 'Editing Clinical Record'}
+                                👤 {rec.user_id?.name ? `${t('patientLabel')} ${translateUserName(rec.user_id.name, currentLanguage)}` : t('editRecordTitle')}
                               </span>
                             </div>
 
@@ -2115,7 +2130,7 @@ function App() {
                                 {canEdit && (
                                   <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     <span>👤</span>
-                                    <span>{t('patientLabel')} {rec.user_id?.name || 'Patient'}</span>
+                                    <span>{t('patientLabel')} {translateUserName(rec.user_id?.name || 'Patient', currentLanguage)}</span>
                                     {rec.user_id?.phone && (
                                       <span style={{ fontSize: '13px', color: '#059669', fontWeight: 600 }}>
                                         (📞 {rec.user_id.phone})
@@ -2126,12 +2141,12 @@ function App() {
 
                                 <div style={{ fontSize: '16px', fontWeight: 700, color: '#065f46', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                   <span>📋</span>
-                                  <span><strong>{t('diagnosisLabel')}</strong> {rec.diagnosis}</span>
+                                  <span><strong>{t('diagnosisLabel')}</strong> {translateDiagnosis(rec.diagnosis, currentLanguage)}</span>
                                 </div>
                               </div>
 
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span className="badge-green">Verified Clinical Record</span>
+                                <span className="badge-green">{t('verifiedClinicalRecordBadge')}</span>
 
                                 {/* Doctor or Nurse Edit Action Button */}
                                 {canEdit && (
@@ -2173,7 +2188,7 @@ function App() {
                               <div>
                                 {rec.doctor_id?.name && (
                                   <span>
-                                    🩺 <strong>{t('prescribedBy')}</strong> {rec.doctor_id.name} ({rec.doctor_id.specialization || 'Healthcare Specialist'})
+                                    🩺 <strong>{t('prescribedBy')}</strong> {translateUserName(rec.doctor_id.name, currentLanguage)} ({translateSpecialization(rec.doctor_id.specialization || 'Healthcare Specialist', currentLanguage)})
                                   </span>
                                 )}
                               </div>
@@ -2202,8 +2217,8 @@ function App() {
                   </h2>
                   <p style={{ margin: 0, color: '#64748b', fontSize: '13px' }}>
                     {(user.role === 'Doctor' || user.role === 'Nurse')
-                      ? 'Prescribe, update, and monitor daily medication dosages for patients with instant live sync.'
-                      : 'View your daily medication schedules prescribed by healthcare professionals with real-time updates.'}
+                      ? t('doctorNurseRemindersNotice')
+                      : t('patientRemindersNotice')}
                   </p>
                 </div>
 
@@ -2303,7 +2318,7 @@ function App() {
                         <option value="">{t('allPatientsOption')}</option>
                         {reminderPatients.map(p => (
                           <option key={p._id} value={p._id}>
-                            {p.name} (📞 {p.phone})
+                            {translateUserName(p.name, currentLanguage)} (📞 {p.phone})
                           </option>
                         ))}
                       </select>
@@ -2361,7 +2376,7 @@ function App() {
                               <option value="">{t('choosePatientOption')}</option>
                               {reminderPatients.map(p => (
                                 <option key={p._id} value={p._id}>
-                                  {p.name} (📞 {p.phone})
+                                  {translateUserName(p.name, currentLanguage)} (📞 {p.phone})
                                 </option>
                               ))}
                             </select>
@@ -2449,7 +2464,7 @@ function App() {
                                     <span>{t('updateReminderTitle')}</span>
                                   </h4>
                                   <span className="badge-green">
-                                    👤 {rem.user_id?.name ? `Patient: ${rem.user_id.name}` : 'Patient Medication'}
+                                    👤 {rem.user_id?.name ? `${t('patientLabel')} ${translateUserName(rem.user_id.name, currentLanguage)}` : t('myRemindersSubtab')}
                                   </span>
                                 </div>
 
@@ -2520,14 +2535,14 @@ function App() {
                                         {rem.medicine}
                                       </div>
                                       <div style={{ fontSize: '13px', color: '#059669', fontWeight: 600, marginTop: '2px' }}>
-                                        ⏰ {rem.schedule}
+                                        ⏰ {translateSchedule(rem.schedule, currentLanguage)}
                                       </div>
                                     </div>
                                   </div>
 
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <span className="badge-green" style={{ fontSize: '12px' }}>
-                                      👤 {rem.user_id?.name || 'Patient'} {rem.user_id?.phone ? `(📞 ${rem.user_id.phone})` : ''}
+                                      👤 {translateUserName(rem.user_id?.name || 'Patient', currentLanguage)} {rem.user_id?.phone ? `(📞 ${rem.user_id.phone})` : ''}
                                     </span>
                                     <button
                                       type="button"
@@ -2555,7 +2570,7 @@ function App() {
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', fontSize: '12px', color: '#64748b', marginTop: '8px', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
                                   <div>
                                     {rem.doctor_id?.name ? (
-                                      <span>🩺 <strong>{t('prescribedByDoctor')}:</strong> {rem.doctor_id.name} ({rem.doctor_id.specialization || 'Doctor'})</span>
+                                      <span>🩺 <strong>{t('prescribedByDoctor')}:</strong> {translateUserName(rem.doctor_id.name, currentLanguage)} ({translateSpecialization(rem.doctor_id.specialization || 'Doctor', currentLanguage)})</span>
                                     ) : (
                                       <span>👤 Set for patient</span>
                                     )}
@@ -2661,7 +2676,7 @@ function App() {
                               {rem.medicine}
                             </div>
                             <div style={{ fontSize: '13px', color: '#059669', fontWeight: 600, marginTop: '2px' }}>
-                              ⏰ {rem.schedule}
+                              ⏰ {translateSchedule(rem.schedule, currentLanguage)}
                             </div>
                           </div>
                           <button
@@ -2731,7 +2746,7 @@ function App() {
                   <h3 style={{ color: '#0f172a', fontSize: '18px', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span>{t('activeRemindersTitle')}</span>
                     <span style={{ fontSize: '13px', color: '#059669', fontWeight: 600 }}>
-                      📋 {reminders.length} Active {reminders.length === 1 ? 'Schedule' : 'Schedules'}
+                      📋 {t('activeSchedulesCounter', { count: reminders.length })}
                     </span>
                   </h3>
 
@@ -2788,7 +2803,7 @@ function App() {
                                   {rem.medicine}
                                 </div>
                                 <div style={{ fontSize: '14px', color: '#059669', fontWeight: 700, marginTop: '2px' }}>
-                                  ⏰ {rem.schedule}
+                                  ⏰ {translateSchedule(rem.schedule, currentLanguage)}
                                 </div>
                               </div>
                             </div>
@@ -2797,7 +2812,7 @@ function App() {
                             <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '10px', fontSize: '12px', color: '#64748b', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
                               {isDoctorPrescribed && (
                                 <div style={{ color: '#065f46', fontWeight: 600 }}>
-                                  🩺 <strong>{t('prescribedByDoctor')}:</strong> {rem.doctor_id?.name || 'Doctor'}
+                                  🩺 <strong>{t('prescribedByDoctor')}:</strong> {translateUserName(rem.doctor_id?.name || 'Doctor', currentLanguage)}
                                 </div>
                               )}
                               <div>
@@ -2825,12 +2840,12 @@ function App() {
                   </h2>
                   <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '13px' }}>
                     {t('showingCentresCount', { count: centres.length })}
-                    {selectedCity && selectedCity !== 'All' ? ` in ${selectedCity}` : ''}
+                    {selectedCity && selectedCity !== 'All' ? ` in ${translateCity(selectedCity, currentLanguage)}` : ''}
                   </p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '6px 14px', borderRadius: '20px', color: '#166534', fontSize: '12px', fontWeight: 600 }}>
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }}></span>
-                  <span>24/7 Verified Healthcare Network</span>
+                  <span>{t('verifiedNetworkBadge')}</span>
                 </div>
               </div>
 
@@ -2878,7 +2893,7 @@ function App() {
                   >
                     {AVAILABLE_CITIES.map(city => (
                       <option key={city.id} value={city.id}>
-                        {city.icon} {city.name} {city.state ? `(${city.state})` : ''}
+                        {city.icon} {translateCity(city.name, currentLanguage)} {city.state ? `(${translateLocation(city.state, currentLanguage)})` : ''}
                       </option>
                     ))}
                   </select>
@@ -2915,7 +2930,7 @@ function App() {
                   >
                     {FACILITY_TYPES.map(ft => (
                       <option key={ft.id} value={ft.id}>
-                        {ft.icon} {ft.name}
+                        {ft.icon} {ft.id === 'All' ? t('facilityTypeAll') : ft.id === 'Hospital' ? t('facilityTypeHospital') : t('facilityTypeClinic')}
                       </option>
                     ))}
                   </select>
@@ -2948,7 +2963,7 @@ function App() {
                     onMouseOver={(e) => { e.currentTarget.style.background = '#e2e8f0'; e.currentTarget.style.color = '#0f172a'; }}
                     onMouseOut={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#475569'; }}
                   >
-                    <span>🔄</span> Reset
+                    <span>🔄</span> {t('resetFiltersBtn')}
                   </button>
                 )}
               </div>
@@ -2965,7 +2980,7 @@ function App() {
                 }}>
                   <div style={{ fontSize: '36px', marginBottom: '10px' }}>🔍</div>
                   <h4 style={{ margin: '0 0 6px 0', color: '#1e293b', fontSize: '16px' }}>{t('noCentresFound')}</h4>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>Try selecting a different city or clearing the facility type filter.</p>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>{t('tryDifferentCityNotice')}</p>
                   {(selectedCity !== 'All' || selectedCentreType !== 'All') && (
                     <button
                       type="button"
@@ -2986,7 +3001,7 @@ function App() {
                         cursor: 'pointer'
                       }}
                     >
-                      Show All Centres
+                      {t('showAllCentresBtn')}
                     </button>
                   )}
                 </div>
@@ -3030,7 +3045,7 @@ function App() {
                             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                               <span style={{ fontSize: '20px', lineHeight: 1 }}>{facilityIcon}</span>
                               <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a', lineHeight: 1.3 }}>
-                                {centre.name}
+                                {translateHospitalName(centre.name, currentLanguage)}
                               </h3>
                             </div>
                             <span style={{ 
@@ -3042,7 +3057,7 @@ function App() {
                               borderRadius: '12px', 
                               whiteSpace: 'nowrap' 
                             }}>
-                              {centre.type}
+                              {centre.type === 'Hospital' ? t('facilityTypeHospital') : centre.type === 'Pharmacy' ? t('facilityTypePharmacy') : t('facilityTypeClinic')}
                             </span>
                           </div>
 
@@ -3056,13 +3071,13 @@ function App() {
                               padding: '2px 8px', 
                               borderRadius: '6px' 
                             }}>
-                              📍 {centre.city || 'Chennai'}
+                              📍 {translateCity(centre.city || 'Chennai', currentLanguage)}
                             </span>
                           </div>
 
                           <p style={{ margin: '0 0 14px 0', color: '#475569', fontSize: '13px', lineHeight: 1.45, display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
                             <span style={{ color: '#94a3b8' }}>🏠</span>
-                            <span>{centre.location}</span>
+                            <span>{translateLocation(centre.location, currentLanguage)}</span>
                           </p>
                         </div>
 
@@ -3089,7 +3104,7 @@ function App() {
                               }}
                               title="Book consultation appointment at this health centre"
                             >
-                              <span>📅</span> Book Doctor
+                              <span>📅</span> {t('bookDoctorBtn')}
                             </button>
                           )}
                           {centre.phone ? (
@@ -3147,7 +3162,7 @@ function App() {
                             }}
                             title="Open Google Maps"
                           >
-                            <span>🗺️</span> Map
+                            <span>🗺️</span> {t('getDirectionsBtn')}
                           </a>
                         </div>
                       </div>

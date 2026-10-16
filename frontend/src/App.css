@@ -477,16 +477,3 @@
   0% { transform: translateY(-10px); opacity: 0; }
   100% { transform: translateY(0); opacity: 1; }
 }
-
-/* Custom masked password input to prevent browser breached-password popups */
-.password-mask-input {
-  -webkit-text-security: disc !important;
-  text-security: disc !important;
-  letter-spacing: 2px;
-}
-
-.password-mask-input.unmasked {
-  -webkit-text-security: none !important;
-  text-security: none !important;
-  letter-spacing: normal;
-}

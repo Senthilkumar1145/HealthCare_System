@@ -522,7 +522,6 @@
     }
   ],
   "reminders": [
-    {},
     {
       "_id": "rem_1792073963737_j95za",
       "user_id": "use_1792073628469_up9rl",
@@ -542,13 +541,56 @@
       "status": "Finished",
       "notes": "",
       "offer": {
-        "sdp": "v=0\r\no=- 1262657151186872911 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE 0\r\na=extmap-allow-mixed\r\na=msid-semantic: WMS 029a8967-7e93-447e-a8d5-41e4a8754ede\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111 63 9 0 8 13 110 126\r\nc=IN IP4 0.0.0.0\r\na=rtcp:9 IN IP4 0.0.0.0\r\na=ice-ufrag:OUWD\r\na=ice-pwd:XF0UidRQRwPZflQMyfpCrZ50\r\na=ice-options:trickle\r\na=fingerprint:sha-256 F7:FE:4C:6E:88:42:F4:7D:9D:BB:9C:C8:CC:48:F1:B5:25:23:F8:74:D2:F5:84:15:BC:CC:C8:39:02:EB:5E:9B\r\na=setup:actpass\r\na=mid:0\r\na=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\r\na=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time\r\na=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\r\na=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid\r\na=sendrecv\r\na=msid:029a8967-7e93-447e-a8d5-41e4a8754ede c2abe166-dcc3-4d39-99a9-2da75a398b39\r\na=rtcp-mux\r\na=rtcp-rsize\r\na=rtcp-xr:rcvr-rtt=all\r\na=rtpmap:111 opus/48000/2\r\na=rtcp-fb:111 transport-cc\r\na=fmtp:111 minptime=10;useinbandfec=1\r\na=rtpmap:63 red/48000/2\r\na=fmtp:63 111/111\r\na=rtpmap:9 G722/8000\r\na=rtpmap:0 PCMU/8000\r\na=rtpmap:8 PCMA/8000\r\na=rtpmap:13 CN/8000\r\na=rtpmap:110 telephone-event/48000\r\na=rtpmap:126 telephone-event/8000\r\na=ssrc:32247800 cname:D3QOQ1zRFu7DY6VR\r\na=ssrc:32247800 msid:029a8967-7e93-447e-a8d5-41e4a8754ede c2abe166-dcc3-4d39-99a9-2da75a398b39\r\n",
+        "sdp": "v=0\r\no=- 3864452067560915280 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\na=group:BUNDLE 0\r\na=extmap-allow-mixed\r\na=msid-semantic: WMS 2e84c65e-5f80-481b-aea0-0de200bd724d\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111 63 9 0 8 13 110 126\r\nc=IN IP4 0.0.0.0\r\na=rtcp:9 IN IP4 0.0.0.0\r\na=ice-ufrag:keYm\r\na=ice-pwd:1HGIEdIbruK2oQq7uJQ6HrUj\r\na=ice-options:trickle\r\na=fingerprint:sha-256 11:0D:D0:AE:4B:35:8A:0B:76:1B:D7:7F:38:4A:95:B4:02:83:9B:1F:35:E5:C3:9F:CB:33:AD:50:B2:A1:A7:28\r\na=setup:actpass\r\na=mid:0\r\na=extmap:1 urn:ietf:params:rtp-hdrext:ssrc-audio-level\r\na=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time\r\na=extmap:3 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01\r\na=extmap:4 urn:ietf:params:rtp-hdrext:sdes:mid\r\na=sendrecv\r\na=msid:2e84c65e-5f80-481b-aea0-0de200bd724d 5a2af02b-d2a7-441d-b582-434b1ad8b4d1\r\na=rtcp-mux\r\na=rtcp-rsize\r\na=rtcp-xr:rcvr-rtt=all\r\na=rtpmap:111 opus/48000/2\r\na=rtcp-fb:111 transport-cc\r\na=fmtp:111 minptime=10;useinbandfec=1\r\na=rtpmap:63 red/48000/2\r\na=fmtp:63 111/111\r\na=rtpmap:9 G722/8000\r\na=rtpmap:0 PCMU/8000\r\na=rtpmap:8 PCMA/8000\r\na=rtpmap:13 CN/8000\r\na=rtpmap:110 telephone-event/48000\r\na=rtpmap:126 telephone-event/8000\r\na=ssrc:511697187 cname:RL6sCJ7LwhsPthrf\r\na=ssrc:511697187 msid:2e84c65e-5f80-481b-aea0-0de200bd724d 5a2af02b-d2a7-441d-b582-434b1ad8b4d1\r\n",
         "type": "offer"
       },
       "answer": null,
-      "candidates": [],
+      "candidates": [
+        {
+          "candidate": "candidate:38654538 1 udp 2122129151 192.168.0.4 63638 typ host generation 0 ufrag keYm network-id 1 network-cost 10",
+          "sdpMid": "0",
+          "sdpMLineIndex": 0,
+          "usernameFragment": "keYm"
+        },
+        {
+          "candidate": "candidate:809514846 1 udp 2122262783 2406:7400:ce:b1c5:959d:603c:be25:de02 63639 typ host generation 0 ufrag keYm network-id 2 network-cost 10",
+          "sdpMid": "0",
+          "sdpMLineIndex": 0,
+          "usernameFragment": "keYm"
+        },
+        {
+          "candidate": "candidate:274732753 1 udp 2122197247 2406:7400:ce:b1c5:6db6:fc80:d5dd:e2b 63640 typ host generation 0 ufrag keYm network-id 3 network-cost 10",
+          "sdpMid": "0",
+          "sdpMLineIndex": 0,
+          "usernameFragment": "keYm"
+        },
+        {
+          "candidate": "candidate:1119330531 1 udp 1685921535 106.51.175.46 62384 typ srflx raddr 192.168.0.4 rport 63638 generation 0 ufrag keYm network-id 1 network-cost 10",
+          "sdpMid": "0",
+          "sdpMLineIndex": 0,
+          "usernameFragment": "keYm"
+        },
+        {
+          "candidate": "candidate:4242999006 1 tcp 1518149375 192.168.0.4 9 typ host tcptype active generation 0 ufrag keYm network-id 1 network-cost 10",
+          "sdpMid": "0",
+          "sdpMLineIndex": 0,
+          "usernameFragment": "keYm"
+        },
+        {
+          "candidate": "candidate:3471500234 1 tcp 1518283007 2406:7400:ce:b1c5:959d:603c:be25:de02 9 typ host tcptype active generation 0 ufrag keYm network-id 2 network-cost 10",
+          "sdpMid": "0",
+          "sdpMLineIndex": 0,
+          "usernameFragment": "keYm"
+        },
+        {
+          "candidate": "candidate:4006265413 1 tcp 1518217471 2406:7400:ce:b1c5:6db6:fc80:d5dd:e2b 9 typ host tcptype active generation 0 ufrag keYm network-id 3 network-cost 10",
+          "sdpMid": "0",
+          "sdpMLineIndex": 0,
+          "usernameFragment": "keYm"
+        }
+      ],
       "createdAt": "2026-10-15T14:20:40.610Z",
-      "updatedAt": "2026-10-15T14:20:48.907Z"
+      "updatedAt": "2026-10-15T20:15:38.879Z"
     }
   ]
 }

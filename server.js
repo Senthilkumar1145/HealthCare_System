@@ -283,8 +283,38 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-const PORT = 3000;
-const HOST = '0.0.0.0';
+const net = require('net');
+const DEFAULT_PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
+const HOST = process.env.HOST || '0.0.0.0';
+
+function findAvailablePort(startPort, host = '0.0.0.0', maxAttempts = 20) {
+  return new Promise((resolve, reject) => {
+    let port = startPort;
+    const testNext = () => {
+      if (port > startPort + maxAttempts) {
+        return reject(new Error(`Could not find an open port between ${startPort} and ${port}`));
+      }
+      const tester = net.createServer();
+      tester.unref();
+      tester.once('error', (err) => {
+        if (err.code === 'EADDRINUSE' || err.code === 'EACCES') {
+          console.warn(`[Port Conflict] Port ${port} is in use. Checking port ${port + 1}...`);
+          port++;
+          testNext();
+        } else {
+          reject(err);
+        }
+      });
+      tester.once('listening', () => {
+        tester.close(() => {
+          resolve(port);
+        });
+      });
+      tester.listen(port, host);
+    };
+    testNext();
+  });
+}
 
 async function startServer() {
   if (process.env.NODE_ENV === 'production') {
@@ -312,8 +342,19 @@ async function startServer() {
     }
   }
 
-  app.listen(PORT, HOST, () => {
-    console.log(`Rural Health Care System running on http://localhost:${PORT}`);
+  const port = await findAvailablePort(DEFAULT_PORT, HOST);
+
+  const server = app.listen(port, HOST, () => {
+    console.log(`\n==================================================`);
+    console.log(` Rural Health Care System Server is Live!`);
+    console.log(` Local:   http://localhost:${port}`);
+    console.log(` Network: http://127.0.0.1:${port}`);
+    console.log(` Database: ${mongoose.connection.readyState === 1 ? 'MongoDB (' + mongoose.connection.name + ')' : 'File-based Store (backend/data/database.json)'}`);
+    console.log(`==================================================\n`);
+  });
+
+  server.on('error', (err) => {
+    console.error('Server error encountered:', err);
   });
 }
 
@@ -321,3 +362,4 @@ startServer().catch((err) => {
   console.error('Failed to start server:', err);
   process.exit(1);
 });
+
